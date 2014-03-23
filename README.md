@@ -26,19 +26,22 @@ SSH Setup
   - ssh-copy-id id_rsa.pub user@host
 - Python script can now connect your cloud server without password
 
-Setup
-=====
+Setup in Raspberry Pi
+=====================
 
-If you use raspberry pi, you need to connect the 3G dongle to powered USB hub. Pi's USB interface does not provide enough power.
+Connect the 3G dongle to powered USB hub. Pi's USB interface does not provide enough power.
 
 In pi check with command lsusb that 3G modem has switched from storage mode to modem mode. It should show ID 12d1:14db:
 - Bus 001 Device 013: ID 12d1:14db Huawei Technologies Co., Ltd. 
 
-In pi the Huawei 3131 emulates eth port, eth1. You need to get IP address from operator before the script starts to work. You can check if device has ip address by: 
+In pi the Huawei 3131 emulates eth port, eth1. You need to get IP address from operator before the script starts to work. 
+- add following to /etc/network/interfaces
+  - allow-hotplug eth1
+  - iface eth1 inet dhcp
+
+After reboot check if device has ip address by. This also shows Huawei is emulating eth1 port: 
 - ifconfig eth1
 
 eth1      Link encap:Ethernet  HWaddr 58:2c:80:13:92:63  
           inet addr:192.168.1.100  Bcast:192.168.1.255  Mask:255.255.255.0
-...
 
-- if no inet addr, run: dhclient eth1
