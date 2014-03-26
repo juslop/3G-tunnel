@@ -52,15 +52,18 @@ Setup modem in Raspberry Pi
 eth1      Link encap:Ethernet  HWaddr 58:2c:80:13:92:63  
           inet addr:192.168.1.100  Bcast:192.168.1.255  Mask:255.255.255.0
 
-Setup client.py to run as Daemon (background process):
-======================================================
+Setup client.py to run as Daemon:
+=================================
+
+(Daemon = background process)
 
 - change the paths to point to your install location in script file
-- Another alternative would be to use Python supervisor library
 - chmod 755 client.py
 - copy the 3G-tunnel.sh script to etc/init.d (sudo needed)
 - chmod it again
 - sudo update-rc.d 3G-tunnel.sh defaults
+
+- More straightforward alternative would be to use Python supervisor library
 
 Script copied from:
   - http://blog.scphillips.com/2013/07/getting-a-python-script-to-run-in-the-background-as-a-service-on-boot/
