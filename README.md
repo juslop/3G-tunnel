@@ -10,7 +10,7 @@ This solution enables you to send sms to Huawei 3G dongle, which opens a reverse
 - sms to your Huawei phone number. Content: "open"
 - wait 15 seconds and access your pi with ssh via your cloud server
   - ssh -p 2222 pi_username@your.cloudserver.com
-  - this ssh connection would contact you pi
+  - this ssh connection would contact your pi
 
 Requirements
 ============
