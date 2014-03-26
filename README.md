@@ -51,6 +51,10 @@ Setup modem in Raspberry Pi
 
 eth1      Link encap:Ethernet  HWaddr 58:2c:80:13:92:63  
           inet addr:192.168.1.100  Bcast:192.168.1.255  Mask:255.255.255.0
+          
+- Once all this is setup you can test sms by running "python pi_sms.py". Send sms to your dongle and see if it gets printed to console.
+- pi_sms.py implements python api to send and receive sms thru the Huawei 3131. Api uses the web server of the 3131, not tty. The 3131 web api is described here:
+  - http://chaddyhv.wordpress.com/2012/08/13/programming-and-installing-huawei-hilink-e3131-under-linux/
 
 Setup client.py to run as Daemon:
 =================================
