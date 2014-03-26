@@ -37,31 +37,30 @@ SSH Setup
 Setup modem in Raspberry Pi
 ===========================
 
-Connect the 3G dongle to powered USB hub. Pi's USB interface does not provide enough power.
-
-In pi check with command lsusb that 3G modem has switched from storage mode to modem mode. It should show ID 12d1:14db:
-- Bus 001 Device 013: ID 12d1:14db Huawei Technologies Co., Ltd. 
-
-In pi the Huawei 3131 emulates eth port, eth1. You need to get IP address from operator before the script starts to work. 
+- Connect the 3G dongle to powered USB hub. Pi's USB interface does not provide enough power.
+- In pi check with command lsusb that 3G modem has switched from storage mode to modem mode. It should show ID 12d1:14db:
+  - Bus 001 Device 013: ID 12d1:14db Huawei Technologies Co., Ltd. 
+  - Mine worked by just installing usb-modeswitch. 
+  - There are several guides to set this manually if it does not work off-the shelf
+- In pi the Huawei 3131 emulates eth port, eth1. You need to get IP address from operator before the script starts to work. 
 - add following to /etc/network/interfaces
   - allow-hotplug eth1
   - iface eth1 inet dhcp
-
-After reboot check if device has ip address by. This also shows Huawei is emulating eth1 port: 
-- ifconfig eth1
+- After reboot check if device has ip address by. This also shows Huawei is emulating eth1 port: 
+  - ifconfig eth1
 
 eth1      Link encap:Ethernet  HWaddr 58:2c:80:13:92:63  
           inet addr:192.168.1.100  Bcast:192.168.1.255  Mask:255.255.255.0
 
-Setup this script to run as Daemon:
-===================================
+Setup client.py to run as Daemon (background process):
+======================================================
 
 - change the paths to point to your install location in script file
-- Script copied from:
-  - http://blog.scphillips.com/2013/07/getting-a-python-script-to-run-in-the-background-as-a-service-on-boot/
 - Another alternative would be to use Python supervisor library
-
 - chmod 755 client.py
 - copy the 3G-tunnel.sh script to etc/init.d (sudo needed)
 - chmod it again
 - sudo update-rc.d 3G-tunnel.sh defaults
+
+Script copied from:
+  - http://blog.scphillips.com/2013/07/getting-a-python-script-to-run-in-the-background-as-a-service-on-boot/
