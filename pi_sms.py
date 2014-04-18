@@ -49,6 +49,13 @@ class NotConnected(Exception):
 class DeviceNotReachable(Exception):
     pass
 
+def _pretty_traffic(n):
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+        if n < 1024.0:
+            return "%3.1f %s" % (n ,x)
+        n /= 1024.0
+    return 'unknown'
+
 def _connected(s):
     r1 = s.get(BASE_URL + 'monitoring/status')
     resp = BeautifulSoup(r1.content)
@@ -86,6 +93,13 @@ def _read_sms(s):
     else:
         raise NotConnected('No data link')
 
+def info(s):
+    r1 = s.get(BASE_URL + 'monitoring/traffic-statistics')
+    resp = BeautifulSoup(r1.content)
+    upload = int(resp.totalupload.string)
+    download = int(resp.totaldownload.string)
+    return 'Modem status: connected: {con}, upload: {up}, download: {down}, total: {tot}'.format(con=_connected(s), up=_pretty_traffic(upload), down=_pretty_traffic(download), tot=_pretty_traffic(upload+download))
+
 def read_sms(s):
     try:
         return _read_sms(s)
@@ -104,6 +118,7 @@ def send_sms(s, phone, content):
 if __name__ == "__main__":
     logger.addHandler(logging.StreamHandler())
     s = requests.Session()
+    print info(s)
     while True:
         try:
             smss = _read_sms(s)

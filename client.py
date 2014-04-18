@@ -23,9 +23,9 @@ import threading
 import atexit
 
 NORMAL_POLL = 15
-ACCEPTED_NUMBERS = [u'+xxxxxxx']
+ACCEPTED_NUMBERS = [u'+358yyy']
 CLOUD_USER = 'zzz'
-CLOUD_SERVER = 'xxxx'
+CLOUD_SERVER = 'xxx'
 SSH_PIPE_UP = 3600
 ACK_SMS = False
 SEND_FAULT_SMS = True
@@ -57,16 +57,18 @@ class PiComms(object):
         phone = sms.get('phone')
         content = sms.get('content')
         if phone in ACCEPTED_NUMBERS:
+            self.phone = phone
             cmd = content.strip().lower()
             if cmd == OPEN_COMMAND:
-                self.phone = phone
                 self.open_reverse_ssh()
             elif cmd == CLOSE_COMMAND:
-                self.phone = phone
                 self.clear_ssh_tunnel(reason='User command')
             elif cmd == INFO_COMMAND:
-                #todo for future
-                pass
+                self.info()
+
+    def info(self):
+        info = pi_sms.info(self.s)
+        pi_sms.send_sms(self.s, self.phone, info)
 
     def clear_ssh_tunnel(self, reason='timeout'):
         self.lock.acquire()
