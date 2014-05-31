@@ -39,6 +39,11 @@ logger = logging.getLogger(__file__)
 def log_exit():
     logger.info('Program terminated')
 
+def _find_modem():
+    return subprocess.call(['lsusb | grep 12d1'], shell=True) == 0
+
+def _check_modem_is_modem():
+    return subprocess.call(['lsusb | grep 12d1:14db'], shell=True) == 0
 
 class PiComms(object):
     def __init__(self):
@@ -108,34 +113,53 @@ class PiComms(object):
             self.timer = threading.Timer(SSH_PIPE_UP, self.clear_ssh_tunnel)
             self.timer.start()
 
+    def dispatch_sms(self):
+        try:
+            smss = pi_sms.read_sms(self.s)
+            if not self.huawei_found:
+                self.huawei_found = True
+                logger.info('Found Huawei Dongle')
+            if not self.connected:
+                self.connected = True
+                logger.info('Data Connection Found')
+            for sms in smss:
+                self.handle_sms(sms)
+            if self.ssh_tunnel and not self.ssh_tunnel.poll() is None:
+                self.clear_ssh_tunnel()
+        except pi_sms.DeviceNotReachable, e:
+            if self.huawei_found:
+                self.huawei_found = False
+                self.connected = False
+                logger.error('Lost Huawei Dongle: %s' % str(e))
+        except pi_sms.NotConnected, e:
+            if self.connected:
+                self.connected = False
+                logger.error('Huawei dropped from network')
+            if not self.huawei_found:
+                self.huawei_found = True
+                logger.info('Found Huawei Dongle')
+        except Exception, e:
+            logger.error('unexpected exception: %s' % str(e))
+
     def run(self):
+        huawei_check = True
         while True:
-            try:
-                smss = pi_sms.read_sms(self.s)
-                if not self.huawei_found:
-                    self.huawei_found = True
-                    logger.info('Found Huawei Dongle')
-                if not self.connected:
-                    self.connected = True
-                    logger.info('Data Connection Found')
-                for sms in smss:
-                    self.handle_sms(sms)
-                if self.ssh_tunnel and not self.ssh_tunnel.poll() is None:
-                    self.clear_ssh_tunnel()
-            except pi_sms.DeviceNotReachable, e:
-                if self.huawei_found:
-                    self.huawei_found = False
-                    self.connected = False
-                    logger.error('Lost Huawei Dongle: %s' % str(e))
-            except pi_sms.NotConnected, e:
-                if self.connected:
-                    self.connected = False
-                    logger.error('Huawei dropped from network')
-                if not self.huawei_found:
-                    self.huawei_found = True
-                    logger.info('Found Huawei Dongle')
-            except Exception, e:
-                logger.error('unexpected exception: %s' % str(e))
+            if not _find_modem():
+                if huawei_check:
+                    logger.error('no Huawei modem in the system')
+                    huawei_check = False
+            else:
+                if not huawei_check:
+                    logger.info('huawei came back alive')
+                    huawei_check = True
+            if huawei_check and not _check_modem_is_modem():
+                time.sleep(10)
+                if not _check_modem_is_modem():
+                    logger.error('Huawei in wrong mode, rebooting')
+                    # modem is as cd-room, reboot gets usbmodeswitch to change it
+                    subprocess.call(['sudo', 'reboot'])
+            if huawei_check:
+                self.dispatch_sms()
             time.sleep(self.sleep)
 
 if __name__ == "__main__":
