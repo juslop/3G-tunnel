@@ -40,10 +40,10 @@ def log_exit():
     logger.info('Program terminated')
 
 def _find_modem():
-    return subprocess.call(['lsusb | grep 12d1'], shell=True) == 0
+    return subprocess.call('lsusb | grep 12d1', shell=True) == 0
 
 def _check_modem_is_modem():
-    return subprocess.call(['lsusb | grep 12d1:14db'], shell=True) == 0
+    return subprocess.call('lsusb | grep 12d1:14db', shell=True) == 0
 
 class PiComms(object):
     def __init__(self):
