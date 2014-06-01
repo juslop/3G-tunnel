@@ -19,6 +19,7 @@ import os
 import signal
 import time
 import subprocess
+import re
 import threading
 import atexit
 
@@ -44,6 +45,27 @@ def _find_modem():
 
 def _check_modem_is_modem():
     return subprocess.call('lsusb | grep 12d1:14db', shell=True) == 0
+
+def _modem_ok():
+    if not _find_modem():
+        return False
+    if _check_modem_is_modem():
+        return True
+    try:
+        ls = subprocess.check_output('lsusb | grep 12d1', shell=True)
+    except Exception:
+        return False
+    logger.info('Huawei in mode: %s' % ls.strip())
+    try:
+        bus = re.findall('Bus (\d+)', ls).pop()
+        dev = re.findall('Device (\d+)', ls).pop()
+    except IndexError:
+        return False
+    cmd = os.path.join(os.path.dirname(__file__), 'usbreboot')
+    s = subprocess.Popen(['sudo', cmd, '/dev/bus/usb/' + bus + '/' + dev], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s.wait()
+    time.sleep(5)
+    logger.info('Huawei usb device reseted: %s' % str(s.stdout.readlines()) + str(s.stderr.readlines()))
 
 class PiComms(object):
     def __init__(self):
@@ -142,23 +164,8 @@ class PiComms(object):
             logger.error('unexpected exception: %s' % str(e))
 
     def run(self):
-        huawei_check = True
         while True:
-            if not _find_modem():
-                if huawei_check:
-                    logger.error('no Huawei modem in the system')
-                    huawei_check = False
-            else:
-                if not huawei_check:
-                    logger.info('huawei came back alive')
-                    huawei_check = True
-            if huawei_check and not _check_modem_is_modem():
-                time.sleep(10)
-                if not _check_modem_is_modem():
-                    logger.error('Huawei in wrong mode, rebooting')
-                    # modem is as cd-room, reboot gets usbmodeswitch to change it
-                    subprocess.call(['sudo', 'reboot'])
-            if huawei_check:
+            if _modem_ok():
                 self.dispatch_sms()
             time.sleep(self.sleep)
 
